@@ -4,15 +4,61 @@ import { useState, useEffect, useCallback } from 'react'
 import TournamentLeaderboard from '@/components/TournamentLeaderboard'
 import PoolStandings from '@/components/PoolStandings'
 import RefreshBar from '@/components/RefreshBar'
-import type { ApiResponse } from '@/lib/types'
+import ScoreBadge from '@/components/ScoreBadge'
+import type { ApiResponse, TeamScore } from '@/lib/types'
 
-const REFRESH_INTERVAL = 60 // seconds
+const REFRESH_INTERVAL = 15 // seconds
+
+function EntryDetail({ team }: { team: TeamScore }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold text-gray-900 text-base">{team.participantName}</h3>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">Team Total:</span>
+          <ScoreBadge score={team.teamTotal} />
+          <span className="text-xs text-gray-400">({team.scoringCount}/5 scoring)</span>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        {team.golfers.map((g, i) => (
+          <div
+            key={i}
+            className={`rounded border px-3 py-2 ${
+              g.counting
+                ? 'border-green-300 bg-green-50'
+                : 'border-gray-200 bg-gray-50 opacity-50'
+            }`}
+          >
+            <span
+              className={`block text-xs font-semibold leading-tight mb-1 ${
+                g.counting ? 'text-gray-800' : 'line-through text-gray-400'
+              }`}
+            >
+              {g.name}
+            </span>
+            <ScoreBadge score={g.score} status={g.status} />
+            {g.thru !== '--' && (
+              <span className="block text-xs text-gray-400 mt-0.5">
+                {g.thru === 'F' ? 'F' : `Thru ${g.thru}`}
+              </span>
+            )}
+            {!g.counting && (
+              <span className="block text-xs text-gray-400 italic">dropped</span>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export default function Home() {
   const [data, setData] = useState<ApiResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL)
+  const [selectedParticipant, setSelectedParticipant] = useState('')
 
   const fetchData = useCallback(async () => {
     try {
@@ -33,7 +79,7 @@ export default function Home() {
     fetchData()
   }, [fetchData])
 
-  // Countdown + auto-refresh every 60s
+  // Countdown + auto-refresh every 15s
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown(prev => {
@@ -51,6 +97,8 @@ export default function Home() {
     await fetch('/api/auth/logout', { method: 'POST' })
     window.location.href = '/login'
   }
+
+  const selectedTeam = data?.poolStandings.find(t => t.participantName === selectedParticipant)
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#F0F7F4' }}>
@@ -86,22 +134,51 @@ export default function Home() {
         </div>
       )}
 
-      <div className="max-w-screen-2xl mx-auto px-4 py-6 space-y-8">
-        {/* Pool Standings first — that's what people care about */}
+      <div className="max-w-screen-2xl mx-auto px-4 py-6 space-y-5">
+        {/* Entry picker */}
         <section>
-          <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
-            Pool Standings
-          </h2>
-          <PoolStandings standings={data?.poolStandings ?? []} loading={loading} />
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="font-semibold text-sm whitespace-nowrap" style={{ color: '#006747' }}>
+              View Entry:
+            </label>
+            <select
+              value={selectedParticipant}
+              onChange={e => setSelectedParticipant(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1.5 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            >
+              <option value="">— Select a participant —</option>
+              {(data?.poolStandings ?? []).map(t => (
+                <option key={t.participantName} value={t.participantName}>
+                  #{t.rank} {t.participantName} ({t.teamTotalDisplay})
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedTeam && (
+            <div className="mt-3">
+              <EntryDetail team={selectedTeam} />
+            </div>
+          )}
         </section>
 
-        {/* Full Tournament Leaderboard */}
-        <section>
-          <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
-            Tournament Leaderboard
-          </h2>
-          <TournamentLeaderboard golfers={data?.leaderboard ?? []} loading={loading} />
-        </section>
+        {/* Two-column grid: leaderboard left, standings right */}
+        <div className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start min-w-0">
+          {/* Tournament Leaderboard — left column */}
+          <section className="min-w-0">
+            <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
+              Tournament Leaderboard
+            </h2>
+            <TournamentLeaderboard golfers={data?.leaderboard ?? []} loading={loading} />
+          </section>
+
+          {/* Pool Standings — right column */}
+          <section className="min-w-0">
+            <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
+              Pool Standings
+            </h2>
+            <PoolStandings standings={data?.poolStandings ?? []} loading={loading} />
+          </section>
+        </div>
       </div>
     </main>
   )

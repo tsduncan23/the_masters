@@ -76,10 +76,10 @@ function buildPositionMap(competitors: EspnCompetitor[]): Map<string, string> {
   let pos = 1
   let i = 0
   while (i < active.length) {
-    const scoreVal = active[i].score?.displayValue ?? getStat(active[i].statistics, 'toPar') ?? ''
+    const scoreVal = getStat(active[i].statistics, 'scoreToPar') ?? active[i].score?.displayValue ?? ''
     let j = i
     while (j < active.length) {
-      const sv = active[j].score?.displayValue ?? getStat(active[j].statistics, 'toPar') ?? ''
+      const sv = getStat(active[j].statistics, 'scoreToPar') ?? active[j].score?.displayValue ?? ''
       if (sv !== scoreVal) break
       j++
     }
@@ -118,15 +118,22 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
 
   const golfers: GolferResult[] = competitors.map(c => {
     const status = getStatus(c)
-    const rawScore = c.score?.displayValue ?? getStat(c.statistics, 'toPar')
+    // scoreToPar is the tournament total to-par; score.displayValue is the current-round score
+    const rawScore = getStat(c.statistics, 'scoreToPar') ?? c.score?.displayValue
     const score = parseScore(rawScore)
 
-    const thruRaw = c.status?.displayValue ?? getStat(c.statistics, 'thru') ?? '--'
+    // status.displayValue is "Thru 7", "F", "CUT", "WD", etc.
+    const statusDv = c.status?.displayValue ?? ''
+    const statusUpper = statusDv.toUpperCase()
     let thru: string
-    const thruUpper = thruRaw.toUpperCase()
-    if (thruUpper === 'CUT' || thruUpper === 'MDF') thru = 'CUT'
-    else if (thruUpper === 'WD' || thruUpper === 'DQ') thru = 'WD'
-    else thru = thruRaw
+    if (statusUpper === 'CUT' || statusUpper === 'MDF') thru = 'CUT'
+    else if (statusUpper === 'WD' || statusUpper === 'DQ') thru = 'WD'
+    else if (statusUpper === 'F') thru = 'F'
+    else {
+      // Extract hole number from "Thru 7" → "7"
+      const m = statusDv.match(/\d+/)
+      thru = m ? m[0] : '--'
+    }
 
     const rounds: string[] = [1, 2, 3, 4].map(i => {
       const linescore = c.linescores?.[i - 1]?.displayValue

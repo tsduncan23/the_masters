@@ -23,9 +23,9 @@ function GolferCell({ golfer }: { golfer: TeamScore['golfers'][0] }) {
   const muted = !golfer.counting
 
   return (
-    <td className={`px-2 py-2 min-w-[120px] ${muted ? 'opacity-40' : ''}`}>
+    <td className={`px-2 py-2 min-w-[95px] ${muted ? 'opacity-40' : ''}`}>
       <div className="flex flex-col gap-0.5">
-        <span className={`text-xs font-medium leading-tight ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+        <span className={`text-xs font-medium leading-tight block truncate max-w-[85px] ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
           {golfer.name}
         </span>
         <div className="flex items-center gap-1">
@@ -45,9 +45,9 @@ function GolferCell({ golfer }: { golfer: TeamScore['golfers'][0] }) {
 export default function PoolStandings({ standings, loading }: PoolStandingsProps) {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '504px' }}>
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-masters-green text-white text-left">
               <th className="px-3 py-3 font-semibold w-10">#</th>
               <th className="px-3 py-3 font-semibold w-36">Participant</th>

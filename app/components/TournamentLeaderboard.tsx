@@ -26,9 +26,9 @@ export default function TournamentLeaderboard({ golfers, loading }: TournamentLe
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '504px' }}>
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-masters-green text-white text-left">
               <th className="px-3 py-3 font-semibold w-14">Pos</th>
               <th className="px-3 py-3 font-semibold">Player</th>
