@@ -100,6 +100,13 @@ function buildPositionMap(competitors: EspnCompetitor[]): Map<string, string> {
   return posMap
 }
 
+function holesRemaining(thru: string): number {
+  if (thru === 'F' || thru === 'CUT' || thru === 'WD') return 0
+  if (thru === '--') return 18
+  const n = parseInt(thru, 10)
+  return isNaN(n) ? 0 : 18 - n
+}
+
 export interface ESPNResult {
   tournamentName: string
   golfers: GolferResult[]
@@ -152,6 +159,17 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
       rounds,
       status,
     }
+  })
+
+  // Sort: lowest score first; tiebreak by holes remaining desc (more left = ranked higher); eliminated last
+  golfers.sort((a, b) => {
+    const aElim = a.status === 'cut' || a.status === 'wd'
+    const bElim = b.status === 'cut' || b.status === 'wd'
+    if (aElim !== bElim) return aElim ? 1 : -1
+    const sa = a.score ?? 999
+    const sb = b.score ?? 999
+    if (sa !== sb) return sa - sb
+    return holesRemaining(b.thru) - holesRemaining(a.thru)
   })
 
   return { tournamentName, golfers }

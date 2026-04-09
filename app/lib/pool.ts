@@ -22,6 +22,19 @@ const POOL_TEAMS: PoolTeam[] = [
   { name: 'Jarrett Wolfe', golfers: ['Scottie Scheffler', 'Ludvig Åberg', 'Corey Conners', 'Brooks Koepka', 'Andrew Novak', 'Mason Howell (a)'] },
   { name: 'Will Rhymes', golfers: ['Ludvig Åberg', 'Robert MacIntyre', 'Matt Fitzpatrick', 'Adam Scott', 'Maverick McNealy', 'Max Greyserman'] },
   { name: 'Tyler Duncan', golfers: ['Scottie Scheffler', 'Matt Fitzpatrick', 'Si Woo Kim', 'Min Woo Lee', 'Sam Stevens', 'Nick Taylor'] },
+  { name: 'Matt Smith', golfers: ['Adam Scott', 'Max Greyserman', 'Xander Schauffele', 'Justin Rose', 'Sam Burns', 'Daniel Berger'] },
+  { name: 'Don Alexander', golfers: ['Ludvig Åberg', 'Cameron Young', 'Akshay Bhatia', 'Jason Day', 'Harris English', 'Haotong Li'] },
+  { name: 'Tom Kunis', golfers: ['Tommy Fleetwood', 'Ludvig Åberg', 'Hideki Matsuyama', 'Jacob Bridgeman', 'J.J. Spaun', 'Fred Couples'] },
+  { name: 'Austin Chubb', golfers: ['Xander Schauffele', 'Corey Conners', 'Jason Day', 'Sungjae Im', 'Harris English', 'Keegan Bradley'] },
+  { name: 'Ian Walsh', golfers: ['Jake Knapp', 'Robert MacIntyre', 'Matt Fitzpatrick', 'Chris Gotterup', 'Bubba Watson', 'Kurt Kitayama'] },
+  { name: 'Sean Coyne', golfers: ['Scottie Scheffler', 'Justin Rose', 'Jake Knapp', 'Russell Henley', 'Brian Harman', 'Nick Taylor'] },
+  { name: 'Alan Matthews', golfers: ['Scottie Scheffler', 'Cameron Young', 'Adam Scott', 'Max Greyserman', 'Patrick Reed', 'Haotong Li'] },
+  { name: 'Billy Gasparino', golfers: ['Jon Rahm', 'Brooks Koepka', 'Corey Conners', 'Sergio Garcia', 'Keegan Bradley', 'Brian Harman'] },
+  { name: 'Durin O\'Linger', golfers: ['Xander Schauffele', 'Matt Fitzpatrick', 'Cameron Young', 'Min Woo Lee', 'Jacob Bridgeman', 'Ethan Fang (a)'] },
+  { name: 'Brian Compton', golfers: ['Sepp Straka', 'Min Woo Lee', 'Russell Henley', 'Nicolai Højgaard', 'Rasmus Højgaard', 'Rory McIlroy'] },
+  { name: 'Lee Tackett', golfers: ['Xander Schauffele', 'Cameron Young', 'Si Woo Kim', 'Rasmus Neergaard-Petersen', 'Ryan Gerard', 'Maverick McNealy'] },
+  { name: 'Tyler DeJong', golfers: ['Bryson DeChambeau', 'Justin Rose', 'Ludvig Åberg', 'Keegan Bradley', 'Nicolai Højgaard', 'Vijay Singh'] },
+  { name: 'Danny Dorn', golfers: ['Hideki Matsuyama', 'Bryson DeChambeau', 'Robert MacIntyre', 'Min Woo Lee', 'Michael Brennan', 'Maverick McNealy'] },
 ]
 
 function formatTeamTotal(total: number | null): string {
