@@ -53,23 +53,25 @@ function GolferCell({
   const cutBg = cutStatus ? CUT_BG[cutStatus] : ''
 
   return (
-    <td className={`px-2 py-2 min-w-[95px] ${cutBg} ${muted ? 'opacity-50' : ''}`}>
-      <div className="flex flex-col gap-0.5">
+    <td className={`px-2 py-2 min-w-[120px] ${cutBg} ${muted ? 'opacity-50' : ''}`}>
+      <div className="flex items-center gap-2">
         {golfer.headshot && (
-          <img src={golfer.headshot} alt={golfer.name} width={24} height={24}
-            className="rounded-full object-cover bg-gray-100" />
+          <img src={golfer.headshot} alt={golfer.name} width={32} height={32}
+            className="rounded-full object-cover bg-gray-100 shrink-0" />
         )}
-        <span className={`text-xs font-medium leading-tight block truncate max-w-[85px] ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
-          {golfer.name}
-        </span>
-        <div className="flex items-center gap-1">
-          <ScoreBadge score={golfer.score} status={golfer.status} />
-          {golfer.thru !== '--' && golfer.thru !== 'F' && golfer.status === 'active' && (
-            <span className="text-gray-400 text-xs">({golfer.thru})</span>
-          )}
-          {golfer.thru === 'F' && (
-            <span className="text-gray-400 text-xs">F</span>
-          )}
+        <div className="flex flex-col gap-0.5 min-w-0">
+          <span className={`text-xs font-medium leading-tight block truncate ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+            {golfer.name}
+          </span>
+          <div className="flex items-center gap-1">
+            <ScoreBadge score={golfer.score} status={golfer.status} />
+            {golfer.thru !== '--' && golfer.thru !== 'F' && golfer.status === 'active' && (
+              <span className="text-gray-400 text-xs">({golfer.thru})</span>
+            )}
+            {golfer.thru === 'F' && (
+              <span className="text-gray-400 text-xs">F</span>
+            )}
+          </div>
         </div>
       </div>
     </td>
@@ -109,7 +111,7 @@ export default function PoolStandings({ standings, loading, projectedCutScore }:
                   className={`border-b border-gray-100 hover:bg-masters-light transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                 >
                   <td className="px-3 py-2 text-gray-600 font-bold text-center">{team.rank}</td>
-                  <td className="px-3 py-2 font-semibold text-gray-900 whitespace-nowrap">{team.participantName}</td>
+                  <td className="px-3 py-2 font-medium text-sm text-gray-900 whitespace-nowrap">{team.participantName}</td>
                   <td className="px-3 py-2 text-center">
                     {team.teamTotal !== null ? (
                       <ScoreBadge score={team.teamTotal} />
