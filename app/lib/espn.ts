@@ -182,7 +182,4 @@ export function normalizeKey(name: string): string {
     .replace(/[\u0300-\u036f]/g, '')       // strip combining diacritics (é→e, Å→A)
     .trim()
     .toLowerCase()
-    .split(/\s+/)
-    .slice(1)                              // drop first name, keep last name(s)
-    .join(' ')
 }
