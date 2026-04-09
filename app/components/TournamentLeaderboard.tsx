@@ -39,12 +39,12 @@ export default function TournamentLeaderboard({ golfers, loading, projectedCutSc
     <div className="bg-white rounded-lg shadow overflow-hidden">
       {/* Projected cut badge */}
       {projectedCutScore !== null && (
-        <div className="px-3 py-2 bg-red-50 border-b border-red-200 flex items-center gap-2">
-          <span className="text-red-500 text-sm">✂</span>
-          <span className="text-xs font-semibold text-red-700">
+        <div className="px-3 py-2 bg-green-50 border-b border-green-200 flex items-center gap-2">
+          <span className="text-green-700 text-sm">✂</span>
+          <span className="text-xs font-semibold text-green-800">
             Projected Cut: {formatCutScore(projectedCutScore)}
           </span>
-          <span className="text-xs text-red-500">— Top 50 advance to the weekend</span>
+          <span className="text-xs text-green-600">— Top 50 advance to the weekend</span>
         </div>
       )}
 
