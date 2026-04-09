@@ -84,7 +84,15 @@ export default function TournamentLeaderboard({ golfers, loading, projectedCutSc
                       className={`border-b border-gray-100 hover:bg-masters-light transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                     >
                       <td className="px-3 py-2.5 text-gray-600 font-medium">{g.position}</td>
-                      <td className="px-3 py-2.5 font-semibold text-gray-900">{g.name}</td>
+                      <td className="px-3 py-2.5 font-semibold text-gray-900">
+                        <div className="flex items-center gap-2">
+                          {g.headshot && (
+                            <img src={g.headshot} alt={g.name} width={28} height={28}
+                              className="rounded-full object-cover bg-gray-100 shrink-0" />
+                          )}
+                          {g.name}
+                        </div>
+                      </td>
                       <td className="px-3 py-2.5 text-center">
                         <ScoreBadge score={g.score} status={g.status} />
                       </td>
@@ -105,7 +113,15 @@ export default function TournamentLeaderboard({ golfers, loading, projectedCutSc
                     {eliminated.map((g) => (
                       <tr key={g.id} className="border-b border-gray-100 bg-gray-50 opacity-60">
                         <td className="px-3 py-2 text-gray-400">{g.position}</td>
-                        <td className="px-3 py-2 text-gray-500">{g.name}</td>
+                        <td className="px-3 py-2 text-gray-500">
+                          <div className="flex items-center gap-2">
+                            {g.headshot && (
+                              <img src={g.headshot} alt={g.name} width={24} height={24}
+                                className="rounded-full object-cover bg-gray-100 shrink-0 opacity-50" />
+                            )}
+                            {g.name}
+                          </div>
+                        </td>
                         <td className="px-3 py-2 text-center">
                           <ScoreBadge score={g.score} status={g.status} />
                         </td>

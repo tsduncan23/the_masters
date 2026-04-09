@@ -12,7 +12,7 @@ interface EspnCompetitor {
   id: string
   order?: number
   score?: { displayValue?: string }
-  athlete?: { displayName?: string; shortName?: string }
+  athlete?: { displayName?: string; shortName?: string; headshot?: { href?: string } }
   status?: {
     displayValue?: string
     type?: { name?: string; state?: string; completed?: boolean }
@@ -110,6 +110,7 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
     return {
       id: c.id,
       name: c.athlete?.displayName ?? 'Unknown',
+      headshot: c.athlete?.headshot?.href ?? '',
       score,
       scoreDisplay: formatScoreDisplay(score, status),
       position: '--',  // assigned below after sorting

@@ -3,6 +3,7 @@ export type GolferStatus = 'active' | 'cut' | 'wd' | 'pending'
 export interface GolferResult {
   id: string
   name: string
+  headshot: string            // ESPN CDN URL, empty string if unavailable
   score: number | null        // to-par total, null if not started or WD
   scoreDisplay: string        // "-10", "E", "+2", "CUT", "WD", "--"
   position: string            // "1", "T2", "CUT", "WD", "--"
@@ -13,6 +14,7 @@ export interface GolferResult {
 
 export interface PoolGolferScore {
   name: string                // display name (without "(a)")
+  headshot: string
   score: number | null
   scoreDisplay: string
   thru: string

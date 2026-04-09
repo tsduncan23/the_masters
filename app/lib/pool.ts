@@ -67,6 +67,7 @@ function computeTeamScore(
   // Build display golfers in original pick order
   const golfers: PoolGolferScore[] = picks.map(p => ({
     name: p.displayName,
+    headshot: p.result?.headshot ?? '',
     score: p.result?.score ?? null,
     scoreDisplay: p.result?.scoreDisplay ?? '--',
     thru: p.result?.thru ?? '--',

@@ -49,13 +49,19 @@ function EntryDetail({ team, projectedCutScore }: { team: TeamScore; projectedCu
             key={i}
             className={`rounded border px-3 py-2 ${cutBorder} ${!g.counting ? 'opacity-50' : ''}`}
           >
-            <span
-              className={`block text-xs font-semibold leading-tight mb-1 ${
-                g.counting ? 'text-gray-800' : 'line-through text-gray-400'
-              }`}
-            >
-              {g.name}
-            </span>
+            <div className="flex items-center gap-2 mb-1">
+              {g.headshot && (
+                <img src={g.headshot} alt={g.name} width={32} height={32}
+                  className="rounded-full object-cover bg-gray-100 shrink-0" />
+              )}
+              <span
+                className={`text-xs font-semibold leading-tight ${
+                  g.counting ? 'text-gray-800' : 'line-through text-gray-400'
+                }`}
+              >
+                {g.name}
+              </span>
+            </div>
             <ScoreBadge score={g.score} status={g.status} />
             {g.thru !== '--' && (
               <span className="block text-xs text-gray-400 mt-0.5">

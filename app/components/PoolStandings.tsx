@@ -55,6 +55,10 @@ function GolferCell({
   return (
     <td className={`px-2 py-2 min-w-[95px] ${cutBg} ${muted ? 'opacity-50' : ''}`}>
       <div className="flex flex-col gap-0.5">
+        {golfer.headshot && (
+          <img src={golfer.headshot} alt={golfer.name} width={24} height={24}
+            className="rounded-full object-cover bg-gray-100" />
+        )}
         <span className={`text-xs font-medium leading-tight block truncate max-w-[85px] ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
           {golfer.name}
         </span>
