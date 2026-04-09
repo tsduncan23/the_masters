@@ -34,8 +34,8 @@ function EntryDetail({ team, projectedCutScore }: { team: TeamScore; projectedCu
         {team.golfers.map((g, i) => {
           const cutStatus =
             projectedCutScore !== null && g.score !== null && g.status === 'active'
-              ? g.score < projectedCutScore ? 'safe'
-              : g.score === projectedCutScore ? 'bubble'
+              ? g.score <= projectedCutScore ? 'safe'
+              : g.score <= projectedCutScore + 2 ? 'bubble'
               : 'out'
               : null
           const cutBorder =

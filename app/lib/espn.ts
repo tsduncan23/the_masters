@@ -60,46 +60,6 @@ function getStatus(c: EspnCompetitor): GolferStatus {
   return 'pending'
 }
 
-function buildPositionMap(competitors: EspnCompetitor[]): Map<string, string> {
-  const posMap = new Map<string, string>()
-
-  // Split active vs eliminated
-  const active = competitors.filter(c => {
-    const dv = c.status?.displayValue?.toUpperCase() ?? ''
-    return dv !== 'CUT' && dv !== 'WD' && dv !== 'MDF' && dv !== 'DQ'
-  })
-  const eliminated = competitors.filter(c => {
-    const dv = c.status?.displayValue?.toUpperCase() ?? ''
-    return dv === 'CUT' || dv === 'WD' || dv === 'MDF' || dv === 'DQ'
-  })
-
-  let pos = 1
-  let i = 0
-  while (i < active.length) {
-    const scoreVal = getStat(active[i].statistics, 'scoreToPar') ?? active[i].score?.displayValue ?? ''
-    let j = i
-    while (j < active.length) {
-      const sv = getStat(active[j].statistics, 'scoreToPar') ?? active[j].score?.displayValue ?? ''
-      if (sv !== scoreVal) break
-      j++
-    }
-    const count = j - i
-    const display = count > 1 ? `T${pos}` : `${pos}`
-    for (let k = i; k < j; k++) {
-      posMap.set(active[k].id, display)
-    }
-    pos += count
-    i = j
-  }
-
-  for (const c of eliminated) {
-    const dv = c.status?.displayValue?.toUpperCase() ?? ''
-    posMap.set(c.id, dv === 'WD' || dv === 'DQ' ? 'WD' : 'CUT')
-  }
-
-  return posMap
-}
-
 function holesRemaining(thru: string): number {
   if (thru === 'F' || thru === 'CUT' || thru === 'WD') return 0
   if (thru === '--') return 18
@@ -121,8 +81,7 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
   const tournamentName = event?.name ?? 'Masters Tournament'
   const competitors = event?.competitions?.[0]?.competitors ?? []
 
-  const posMap = buildPositionMap(competitors)
-
+  // Build golfers without position first (assigned after sorting)
   const golfers: GolferResult[] = competitors.map(c => {
     const status = getStatus(c)
     // scoreToPar is the tournament total to-par; score.displayValue is the current-round score
@@ -137,7 +96,6 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
     else if (statusUpper === 'WD' || statusUpper === 'DQ') thru = 'WD'
     else if (statusUpper === 'F') thru = 'F'
     else {
-      // Extract hole number from "Thru 7" → "7"
       const m = statusDv.match(/\d+/)
       thru = m ? m[0] : '--'
     }
@@ -154,14 +112,14 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
       name: c.athlete?.displayName ?? 'Unknown',
       score,
       scoreDisplay: formatScoreDisplay(score, status),
-      position: posMap.get(c.id) ?? '--',
+      position: '--',  // assigned below after sorting
       thru,
       rounds,
       status,
     }
   })
 
-  // Sort: lowest score first; tiebreak by holes remaining desc (more left = ranked higher); eliminated last
+  // Sort: lowest score first; tiebreak by holes remaining desc; eliminated last
   golfers.sort((a, b) => {
     const aElim = a.status === 'cut' || a.status === 'wd'
     const bElim = b.status === 'cut' || b.status === 'wd'
@@ -171,6 +129,39 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
     if (sa !== sb) return sa - sb
     return holesRemaining(b.thru) - holesRemaining(a.thru)
   })
+
+  // Assign positions from the sorted order (ties share the same rank)
+  let pos = 1
+  let i = 0
+  while (i < golfers.length) {
+    const g = golfers[i]
+    if (g.status === 'cut' || g.status === 'wd') {
+      g.position = g.status === 'wd' ? 'WD' : 'CUT'
+      i++
+      continue
+    }
+    if (g.score === null) {
+      g.position = '--'
+      i++
+      continue
+    }
+    // Find the end of this tie group (same score, same holes remaining)
+    let j = i + 1
+    while (
+      j < golfers.length &&
+      golfers[j].status !== 'cut' &&
+      golfers[j].status !== 'wd' &&
+      golfers[j].score === g.score &&
+      holesRemaining(golfers[j].thru) === holesRemaining(g.thru)
+    ) {
+      j++
+    }
+    const count = j - i
+    const label = count > 1 ? `T${pos}` : `${pos}`
+    for (let k = i; k < j; k++) golfers[k].position = label
+    pos += count
+    i = j
+  }
 
   return { tournamentName, golfers }
 }

@@ -30,8 +30,8 @@ function getCutStatus(
   if (projectedCutScore === null) return null
   if (status === 'cut' || status === 'wd' || status === 'pending') return null
   if (score === null) return null
-  if (score < projectedCutScore) return 'safe'
-  if (score === projectedCutScore) return 'bubble'
+  if (score <= projectedCutScore) return 'safe'
+  if (score <= projectedCutScore + 2) return 'bubble'  // within 2 strokes of the cut line
   return 'out'
 }
 
@@ -126,8 +126,8 @@ export default function PoolStandings({ standings, loading, projectedCutScore }:
         <span>Best 5 of 6 count toward total. Struck-through = dropped score.</span>
         {projectedCutScore !== null && (
           <span className="flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-sm bg-green-400" /> Safe
-            <span className="inline-block w-2 h-2 rounded-sm bg-yellow-400" /> Bubble
+            <span className="inline-block w-2 h-2 rounded-sm bg-green-400" /> Inside cut
+            <span className="inline-block w-2 h-2 rounded-sm bg-yellow-400" /> Within 2 of cut
             <span className="inline-block w-2 h-2 rounded-sm bg-red-400" /> Outside cut
           </span>
         )}
