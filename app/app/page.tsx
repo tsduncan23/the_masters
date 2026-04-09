@@ -5,11 +5,21 @@ import TournamentLeaderboard from '@/components/TournamentLeaderboard'
 import PoolStandings from '@/components/PoolStandings'
 import RefreshBar from '@/components/RefreshBar'
 import ScoreBadge from '@/components/ScoreBadge'
-import type { ApiResponse, TeamScore } from '@/lib/types'
+import type { ApiResponse, GolferResult, TeamScore } from '@/lib/types'
 
 const REFRESH_INTERVAL = 15 // seconds
 
-function EntryDetail({ team }: { team: TeamScore }) {
+/** Top-50-including-ties cut rule. Returns null if cut already made or < 50 players scored. */
+function getProjectedCutScore(golfers: GolferResult[]): number | null {
+  if (golfers.some(g => g.status === 'cut')) return null  // cut already applied
+  const withScores = golfers
+    .filter(g => g.score !== null && g.status === 'active')
+    .sort((a, b) => (a.score ?? 999) - (b.score ?? 999))
+  if (withScores.length < 50) return null
+  return withScores[49].score
+}
+
+function EntryDetail({ team, projectedCutScore }: { team: TeamScore; projectedCutScore: number | null }) {
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-3">
@@ -21,14 +31,23 @@ function EntryDetail({ team }: { team: TeamScore }) {
         </div>
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-        {team.golfers.map((g, i) => (
+        {team.golfers.map((g, i) => {
+          const cutStatus =
+            projectedCutScore !== null && g.score !== null && g.status === 'active'
+              ? g.score < projectedCutScore ? 'safe'
+              : g.score === projectedCutScore ? 'bubble'
+              : 'out'
+              : null
+          const cutBorder =
+            cutStatus === 'safe'   ? 'border-green-400 bg-green-50' :
+            cutStatus === 'bubble' ? 'border-yellow-400 bg-yellow-50' :
+            cutStatus === 'out'    ? 'border-red-400 bg-red-50' :
+            g.counting             ? 'border-green-300 bg-green-50' :
+                                     'border-gray-200 bg-gray-50'
+          return (
           <div
             key={i}
-            className={`rounded border px-3 py-2 ${
-              g.counting
-                ? 'border-green-300 bg-green-50'
-                : 'border-gray-200 bg-gray-50 opacity-50'
-            }`}
+            className={`rounded border px-3 py-2 ${cutBorder} ${!g.counting ? 'opacity-50' : ''}`}
           >
             <span
               className={`block text-xs font-semibold leading-tight mb-1 ${
@@ -47,7 +66,8 @@ function EntryDetail({ team }: { team: TeamScore }) {
               <span className="block text-xs text-gray-400 italic">dropped</span>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -99,6 +119,7 @@ export default function Home() {
   }
 
   const selectedTeam = data?.poolStandings.find(t => t.participantName === selectedParticipant)
+  const projectedCutScore = data ? getProjectedCutScore(data.leaderboard) : null
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#F0F7F4' }}>
@@ -156,7 +177,7 @@ export default function Home() {
           </div>
           {selectedTeam && (
             <div className="mt-3">
-              <EntryDetail team={selectedTeam} />
+              <EntryDetail team={selectedTeam} projectedCutScore={projectedCutScore} />
             </div>
           )}
         </section>
@@ -168,7 +189,7 @@ export default function Home() {
             <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
               Tournament Leaderboard
             </h2>
-            <TournamentLeaderboard golfers={data?.leaderboard ?? []} loading={loading} />
+            <TournamentLeaderboard golfers={data?.leaderboard ?? []} loading={loading} projectedCutScore={projectedCutScore} />
           </section>
 
           {/* Pool Standings — right column */}
@@ -176,7 +197,7 @@ export default function Home() {
             <h2 className="text-lg font-bold mb-3" style={{ color: '#006747' }}>
               Pool Standings
             </h2>
-            <PoolStandings standings={data?.poolStandings ?? []} loading={loading} />
+            <PoolStandings standings={data?.poolStandings ?? []} loading={loading} projectedCutScore={projectedCutScore} />
           </section>
         </div>
       </div>

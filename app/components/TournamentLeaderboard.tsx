@@ -4,6 +4,12 @@ import ScoreBadge from './ScoreBadge'
 interface TournamentLeaderboardProps {
   golfers: GolferResult[]
   loading: boolean
+  projectedCutScore: number | null
+}
+
+function formatCutScore(score: number): string {
+  if (score === 0) return 'E'
+  return score > 0 ? `+${score}` : `${score}`
 }
 
 function SkeletonRow() {
@@ -20,13 +26,29 @@ function SkeletonRow() {
   )
 }
 
-export default function TournamentLeaderboard({ golfers, loading }: TournamentLeaderboardProps) {
+export default function TournamentLeaderboard({ golfers, loading, projectedCutScore }: TournamentLeaderboardProps) {
   const active = golfers.filter(g => g.status !== 'cut' && g.status !== 'wd')
   const eliminated = golfers.filter(g => g.status === 'cut' || g.status === 'wd')
 
+  // Index of first active player outside the projected cut
+  const cutLineIdx = projectedCutScore !== null
+    ? active.findIndex(g => g.score !== null && g.score > projectedCutScore)
+    : -1
+
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '504px' }}>
+      {/* Projected cut badge */}
+      {projectedCutScore !== null && (
+        <div className="px-3 py-2 bg-red-50 border-b border-red-200 flex items-center gap-2">
+          <span className="text-red-500 text-sm">✂</span>
+          <span className="text-xs font-semibold text-red-700">
+            Projected Cut: {formatCutScore(projectedCutScore)}
+          </span>
+          <span className="text-xs text-red-500">— Top 50 advance to the weekend</span>
+        </div>
+      )}
+
+      <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: projectedCutScore !== null ? '472px' : '504px' }}>
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-masters-green text-white text-left">
@@ -46,20 +68,32 @@ export default function TournamentLeaderboard({ golfers, loading }: TournamentLe
             ) : (
               <>
                 {active.map((g, i) => (
-                  <tr
-                    key={g.id}
-                    className={`border-b border-gray-100 hover:bg-masters-light transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    <td className="px-3 py-2.5 text-gray-600 font-medium">{g.position}</td>
-                    <td className="px-3 py-2.5 font-semibold text-gray-900">{g.name}</td>
-                    <td className="px-3 py-2.5 text-center">
-                      <ScoreBadge score={g.score} status={g.status} />
-                    </td>
-                    <td className="px-3 py-2.5 text-center text-gray-600">{g.thru}</td>
-                    {g.rounds.map((r, ri) => (
-                      <td key={ri} className="px-3 py-2.5 text-center text-gray-600">{r}</td>
-                    ))}
-                  </tr>
+                  <>
+                    {/* Cut line separator — inserted before first player outside cut */}
+                    {cutLineIdx !== -1 && i === cutLineIdx && (
+                      <tr key={`cut-line`}>
+                        <td colSpan={8} className="px-3 py-1 bg-red-50 border-y border-red-300 text-center">
+                          <span className="text-xs font-semibold text-red-600 tracking-wide">
+                            ✂ PROJECTED CUT — {formatCutScore(projectedCutScore!)}
+                          </span>
+                        </td>
+                      </tr>
+                    )}
+                    <tr
+                      key={g.id}
+                      className={`border-b border-gray-100 hover:bg-masters-light transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    >
+                      <td className="px-3 py-2.5 text-gray-600 font-medium">{g.position}</td>
+                      <td className="px-3 py-2.5 font-semibold text-gray-900">{g.name}</td>
+                      <td className="px-3 py-2.5 text-center">
+                        <ScoreBadge score={g.score} status={g.status} />
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-gray-600">{g.thru}</td>
+                      {g.rounds.map((r, ri) => (
+                        <td key={ri} className="px-3 py-2.5 text-center text-gray-600">{r}</td>
+                      ))}
+                    </tr>
+                  </>
                 ))}
                 {eliminated.length > 0 && (
                   <>
@@ -68,7 +102,7 @@ export default function TournamentLeaderboard({ golfers, loading }: TournamentLe
                         Missed Cut / Withdrew
                       </td>
                     </tr>
-                    {eliminated.map((g, i) => (
+                    {eliminated.map((g) => (
                       <tr key={g.id} className="border-b border-gray-100 bg-gray-50 opacity-60">
                         <td className="px-3 py-2 text-gray-400">{g.position}</td>
                         <td className="px-3 py-2 text-gray-500">{g.name}</td>

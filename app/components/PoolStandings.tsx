@@ -1,9 +1,10 @@
-import type { TeamScore } from '@/lib/types'
+import type { TeamScore, GolferStatus } from '@/lib/types'
 import ScoreBadge from './ScoreBadge'
 
 interface PoolStandingsProps {
   standings: TeamScore[]
   loading: boolean
+  projectedCutScore: number | null
 }
 
 function SkeletonRow() {
@@ -19,11 +20,40 @@ function SkeletonRow() {
   )
 }
 
-function GolferCell({ golfer }: { golfer: TeamScore['golfers'][0] }) {
+type CutStatus = 'safe' | 'bubble' | 'out' | null
+
+function getCutStatus(
+  score: number | null,
+  status: GolferStatus,
+  projectedCutScore: number | null,
+): CutStatus {
+  if (projectedCutScore === null) return null
+  if (status === 'cut' || status === 'wd' || status === 'pending') return null
+  if (score === null) return null
+  if (score < projectedCutScore) return 'safe'
+  if (score === projectedCutScore) return 'bubble'
+  return 'out'
+}
+
+const CUT_BG: Record<NonNullable<CutStatus>, string> = {
+  safe:   'bg-green-50  border-l-2 border-green-400',
+  bubble: 'bg-yellow-50 border-l-2 border-yellow-400',
+  out:    'bg-red-50    border-l-2 border-red-400',
+}
+
+function GolferCell({
+  golfer,
+  projectedCutScore,
+}: {
+  golfer: TeamScore['golfers'][0]
+  projectedCutScore: number | null
+}) {
   const muted = !golfer.counting
+  const cutStatus = getCutStatus(golfer.score, golfer.status, projectedCutScore)
+  const cutBg = cutStatus ? CUT_BG[cutStatus] : ''
 
   return (
-    <td className={`px-2 py-2 min-w-[95px] ${muted ? 'opacity-40' : ''}`}>
+    <td className={`px-2 py-2 min-w-[95px] ${cutBg} ${muted ? 'opacity-50' : ''}`}>
       <div className="flex flex-col gap-0.5">
         <span className={`text-xs font-medium leading-tight block truncate max-w-[85px] ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
           {golfer.name}
@@ -42,7 +72,7 @@ function GolferCell({ golfer }: { golfer: TeamScore['golfers'][0] }) {
   )
 }
 
-export default function PoolStandings({ standings, loading }: PoolStandingsProps) {
+export default function PoolStandings({ standings, loading, projectedCutScore }: PoolStandingsProps) {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
       <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '504px' }}>
@@ -84,7 +114,7 @@ export default function PoolStandings({ standings, loading }: PoolStandingsProps
                     )}
                   </td>
                   {team.golfers.map((g, gi) => (
-                    <GolferCell key={gi} golfer={g} />
+                    <GolferCell key={gi} golfer={g} projectedCutScore={projectedCutScore} />
                   ))}
                 </tr>
               ))
@@ -92,8 +122,15 @@ export default function PoolStandings({ standings, loading }: PoolStandingsProps
           </tbody>
         </table>
       </div>
-      <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
-        Best 5 of 6 golfers count toward team total. Struck-through golfer is the dropped score.
+      <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
+        <span>Best 5 of 6 count toward total. Struck-through = dropped score.</span>
+        {projectedCutScore !== null && (
+          <span className="flex items-center gap-2">
+            <span className="inline-block w-2 h-2 rounded-sm bg-green-400" /> Safe
+            <span className="inline-block w-2 h-2 rounded-sm bg-yellow-400" /> Bubble
+            <span className="inline-block w-2 h-2 rounded-sm bg-red-400" /> Outside cut
+          </span>
+        )}
       </div>
     </div>
   )
