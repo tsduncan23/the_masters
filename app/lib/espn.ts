@@ -96,8 +96,8 @@ export async function fetchESPNLeaderboard(): Promise<ESPNResult> {
     else if (statusUpper === 'WD' || statusUpper === 'DQ') thru = 'WD'
     else if (statusUpper === 'F') thru = 'F'
     else {
-      const m = statusDv.match(/\d+/)
-      thru = m ? m[0] : '--'
+      const m = statusDv.match(/^Thru\s+(\d+)$/i)
+      thru = m ? m[1] : '--'
     }
 
     const rounds: string[] = [1, 2, 3, 4].map(i => {
