@@ -20,6 +20,7 @@ export interface PoolGolferScore {
   thru: string
   status: GolferStatus
   counting: boolean           // true if this is one of the best 5
+  penaltyScore: number | null // R3/R4 only: worst active score applied to cut players
 }
 
 export interface TeamScore {

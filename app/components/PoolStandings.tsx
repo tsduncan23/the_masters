@@ -63,8 +63,13 @@ function GolferCell({
           <span className={`text-xs font-medium leading-tight block truncate ${muted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
             {golfer.name}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-wrap">
             <ScoreBadge score={golfer.score} status={golfer.status} />
+            {golfer.penaltyScore !== null && (
+              <span className="text-xs text-orange-600 font-semibold whitespace-nowrap">
+                → {golfer.penaltyScore > 0 ? `+${golfer.penaltyScore}` : golfer.penaltyScore === 0 ? 'E' : golfer.penaltyScore}
+              </span>
+            )}
             {golfer.thru !== '--' && golfer.thru !== 'F' && golfer.status === 'active' && (
               <span className="text-gray-400 text-xs">({golfer.thru})</span>
             )}

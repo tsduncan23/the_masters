@@ -46,22 +46,32 @@ function formatTeamTotal(total: number | null): string {
 function computeTeamScore(
   team: PoolTeam,
   golferMap: Map<string, GolferResult>,
+  worstActiveScore: number | null,
 ): Omit<TeamScore, 'rank'> {
   // Resolve each pick against the ESPN leaderboard
-  const picks = team.golfers.map((csvName, idx) => ({
-    idx,
-    displayName: csvName.replace(/\s*\(a\)/gi, '').trim(),
-    result: golferMap.get(normalizeKey(csvName)),
-  }))
+  const picks = team.golfers.map((csvName, idx) => {
+    const result = golferMap.get(normalizeKey(csvName))
+    // Weekend penalty: cut players count as the worst active score instead of their own
+    const penaltyScore =
+      result?.status === 'cut' && worstActiveScore !== null ? worstActiveScore : null
+    const effectiveScore = penaltyScore ?? result?.score ?? null
+    return {
+      idx,
+      displayName: csvName.replace(/\s*\(a\)/gi, '').trim(),
+      result,
+      penaltyScore,
+      effectiveScore,
+    }
+  })
 
-  // Sort picks by score ascending to find best 5; nulls go last
+  // Sort picks by effective score ascending to find best 5; nulls go last
   const byScore = [...picks].sort((a, b) => {
-    const sa = a.result?.score ?? 999
-    const sb = b.result?.score ?? 999
+    const sa = a.effectiveScore ?? 999
+    const sb = b.effectiveScore ?? 999
     return sa - sb
   })
 
-  // The best-5 are the first 5 after sorting by score
+  // The best-5 are the first 5 after sorting by effective score
   const best5Indices = new Set(byScore.slice(0, 5).map(p => p.idx))
 
   // Build display golfers in original pick order
@@ -73,13 +83,14 @@ function computeTeamScore(
     thru: p.result?.thru ?? '--',
     status: p.result?.status ?? 'pending',
     counting: best5Indices.has(p.idx),
+    penaltyScore: best5Indices.has(p.idx) ? p.penaltyScore : null,
   }))
 
-  // Team total = sum of scores for counting golfers that have an actual score
-  const countingGolfers = golfers.filter(g => g.counting)
-  const scoringCount = countingGolfers.filter(g => g.score !== null).length
+  // Team total = sum of effective scores for counting golfers that have a score
+  const countingPicks = picks.filter(p => best5Indices.has(p.idx))
+  const scoringCount = countingPicks.filter(p => p.effectiveScore !== null).length
   const teamTotal = scoringCount > 0
-    ? countingGolfers.reduce((sum, g) => sum + (g.score ?? 0), 0)
+    ? countingPicks.reduce((sum, p) => sum + (p.effectiveScore ?? 0), 0)
     : null
 
   return {
@@ -93,7 +104,18 @@ function computeTeamScore(
 
 export function computeAllTeamScores(leaderboard: GolferResult[]): TeamScore[] {
   const golferMap = buildGolferMap(leaderboard)
-  const unsorted = POOL_TEAMS.map(team => computeTeamScore(team, golferMap))
+
+  // Weekend penalty: once the cut is made, cut players count as the worst active score
+  const cutMade = leaderboard.some(g => g.status === 'cut')
+  const worstActiveScore = cutMade
+    ? Math.max(
+        ...leaderboard
+          .filter(g => g.status === 'active' && g.score !== null)
+          .map(g => g.score as number)
+      )
+    : null
+
+  const unsorted = POOL_TEAMS.map(team => computeTeamScore(team, golferMap, worstActiveScore))
 
   // Sort: team total ascending, scoring count descending (more scores = more complete), alphabetical
   unsorted.sort((a, b) => {

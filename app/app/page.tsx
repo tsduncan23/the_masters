@@ -63,6 +63,11 @@ function EntryDetail({ team, projectedCutScore }: { team: TeamScore; projectedCu
               </span>
             </div>
             <ScoreBadge score={g.score} status={g.status} />
+            {g.penaltyScore !== null && (
+              <span className="text-xs text-orange-600 font-semibold mt-0.5">
+                → {g.penaltyScore > 0 ? `+${g.penaltyScore}` : g.penaltyScore === 0 ? 'E' : g.penaltyScore}
+              </span>
+            )}
             {g.thru !== '--' && (
               <span className="block text-xs text-gray-400 mt-0.5">
                 {g.thru === 'F' ? 'F' : `Thru ${g.thru}`}
